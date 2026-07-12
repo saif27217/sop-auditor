@@ -133,8 +133,17 @@ Traceability/Record Keeping/Regulatory/Efficiency). Include:
 - Problem
 - Why it matters
 - Recommended improvement
+- **Exact Suggested Change** — draft SOP text that could be inserted or
+  modified directly (e.g. *"Add a new section 4.xx: 'TAT: Routine serum
+  albumin results shall be reported within X hours of sample receipt.
+  Urgent (STAT) albumin shall be reported within Y hours.'"*)
 - Expected benefit
 - Confidence (High/Medium/Low) + the chunk it came from
+
+The **Exact Suggested Change** column is not optional. A finding that only
+says "add TAT" is half-finished. The value is in providing language the SOP
+owner can copy-paste with minimal edits. Default to placeholder variables
+(e.g. X hours, Y days) where the exact number needs local calibration.
 
 ## Step 7 — Deliver as Google Doc (Composio MCP)
 
@@ -169,7 +178,7 @@ them directly via `COMPOSIO_MULTI_EXECUTE_TOOL`.
 # SOPs Reviewed  (table: SOP | Version | Chunks | Relevance)
 # What the full dump contains  (verbatim scales, formulas, bands)
 # Findings  (1..N: Severity | Category | Doc | Section | Evidence | Problem |
-            Recommendation | Benefit | Confidence)
+            Recommendation | **Exact Suggested Change** | Benefit | Confidence)
 # Cross-SOP Conflict Table
 # Worked Example  (same input → divergent verdict under each doc)
 # Priority Action Plan  (Immediate / 30 days / Long term)
@@ -194,9 +203,38 @@ them directly via `COMPOSIO_MULTI_EXECUTE_TOOL`.
    `result.content[0].text` (string) → `json.loads` → `data.results[i].response.data`.
 5. **Contradiction over absence** — when a child doc cites a parent but diverges,
    that's a Critical compliance finding, not a documentation gap.
+6. **Verify deliverables end-to-end** — a tool returning `successful:true` does NOT
+   mean the content is correct. After any file/doc write, re-read the actual result
+   (clone the repo / open the doc / `read_file` the saved file) and check it is NOT
+   base64/garbage and matches the source. A corrupted README slipped through because
+   the success message was trusted without inspection.
+7. **Composio `...FILE_CONTENTS` with `encoding:base64` stores RAW base64** — the API
+   does NOT decode it; the file ends up containing the base64 string, not the decoded
+   text. Do NOT pass `encoding:base64` expecting auto-decode. For GitHub file writes,
+   prefer the `gh` CLI (`gh repo clone` → copy files → `git commit` → `git push`) which
+   is authenticated and avoids the envelope limits that break large `mcp_composio_*`
+   JSON args. (Large base64 args also exceed the tool-call envelope ~19 KB.)
+8. **Footer artifacts masquerade as content** — grepping `tat`/`review` catches the
+   document footer "Reviewed & Issued by" line, not a real TAT/review clause. Exclude
+   footer hits when scanning for commitments.
+
+## Pre-flight: the recurring gap checklist
+
+Before writing findings, scan against `references/common-sop-gaps.md` — the common
+*omissions* (TAT, calibration frequency, method validation, periodic review, risk-SOP
+citation). These recur across the VDC BIO AU-series and are usually the real findings,
+not contradictions. A worked example lives in `references/example-bio01-albumin.md`.
 
 ## Scripts
 
 - `scripts/full_dump.py` — scroll all chunks for given `doc_id` substrings, print totals.
 - `scripts/scan_terms.py` — term-hit scanner across dumped chunks.
 - `scripts/extract_section.py` — verbatim extraction for specific terms/sections.
+
+## References (support files)
+
+- `references/common-sop-gaps.md` — reusable checklist of dimensions to scan every SOP
+  against (TAT, calibration frequency, method validation, periodic review, risk-SOP
+  citation). Start here before drafting findings.
+- `references/example-bio01-albumin.md` — full worked audit (VDC BIO 01, BCG method)
+  with verbatim evidence and findings; use as a template.
