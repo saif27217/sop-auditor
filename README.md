@@ -1,1 +1,70 @@
-IyBzb3AtYXVkaXRvcgoKSGVybWVzIHNraWxsICsgc2NyaXB0cyBmb3IgYXVkaXRpbmcgU09QcyAvIHdvcmsgaW5zdHJ1Y3Rpb25zIHN0b3JlZCBhcyBjaHVua3MgaW4gYQpRZHJhbnQgUkFHIGNvbGxlY3Rpb24g4oCUIGRldGVjdGluZyBjb250cmFkaWN0aW9ucywgbWlzc2luZyBzdGVwcywgYW5kIGNvbXBsaWFuY2UgZ2FwcywKdGhlbiBkZWxpdmVyaW5nIGFuIGF1ZGl0LXJlYWR5IHJlcG9ydCBhcyBhIEdvb2dsZSBEb2MgdmlhIENvbXBvc2lvIE1DUC4KCiMjIFdoeSB0aGlzIGV4aXN0cwoKQSBub3JtYWwgc2VtYW50aWMgdG9wLWsgc2VhcmNoICoqbWlzc2VzIGNyaXRpY2FsIGRhdGEqKi4gSW4gdGhlIGZvdW5kaW5nIGF1ZGl0CihSaXNrIEFzc2Vzc21lbnQgU09QcyksIHRvcC1rIHN1cmZhY2VkIH4xNSBvZiAxMDAgY2h1bmtzIGZvciB0aGUgbWFzdGVyIFNPUCBhbmQKfjE1IG9mIDI5MCBmb3IgdGhlIHdvcmsgaW5zdHJ1Y3Rpb25zIOKAlCB0aGUgcmlzayBtYXRyaWNlcyBhbmQgUlBOIGZvcm11bGFzIHdlcmUKbmV2ZXIgcmV0cmlldmVkICh0aGV5IGxpdmUgaW4gZGVuc2UgdGFibGVzIHRoYXQgZG9uJ3QgbWF0Y2ggbmF0dXJhbC1sYW5ndWFnZQpxdWVyaWVzKS4gVGhhdCBwcm9kdWNlZCBhIHdyb25nIGF1ZGl0IHdoaWNoIGhhZCB0byBiZSBjb3JyZWN0ZWQuCgpUaGUgZml4IGlzIGEgKipmdWxsIHBheWxvYWQtZmlsdGVyZWQgZHVtcCoqIG9mIGV2ZXJ5IGNodW5rIGZvciB0aGUgdGFyZ2V0IGRvY3VtZW50cwpiZWZvcmUgYW55IGFuYWx5c2lzLiBUaGlzIHJlcG8gcGFja2FnZXMgdGhhdCB3b3JrZmxvdyBhcyBhIHJldXNhYmxlIEhlcm1lcyBza2lsbC4KCiMjIFdoYXQgaXQgZG9lcwoKMS4gSWRlbnRpZnkgdGFyZ2V0IGRvY3MgZnJvbSB0aGUgdXNlciByZXF1ZXN0IChgZG9jX2lkYCBzdWJzdHJpbmdzKS4KMi4gKipGdWxsIGR1bXAqKiAobm90IHRvcC1rKSBldmVyeSBjaHVuayBmb3IgdGhvc2UgZG9jcyB2aWEgYGNsaWVudC5zY3JvbGwoKWAuCjMuIFNjYW4gZm9yIHRoZSB0ZXJtcyB0aGF0IG1hdHRlciAoUlBOLCBzZXZlcml0eSwgb2NjdXJyZW5jZSwgYmFuZHMsIGFjY2VwdGFuY2UpLgo0LiBFeHRyYWN0IHZlcmJhdGltIHNjYWxlcy9tYXRyaWNlcyBmcm9tIGVhY2ggZG9jLgo1LiBDcm9zcy1kb2N1bWVudCBjb21wYXJpc29uIOKGkiBjb25mbGljdCB0YWJsZS4KNi4gRmluZGluZ3Mgd2l0aCBzZXZlcml0eSDDlyBjYXRlZ29yeSwgZWFjaCBncm91bmRlZCBpbiBhIHNvdXJjZSBjaHVuay4KNy4gRGVsaXZlciBhcyBhIEdvb2dsZSBEb2MgKGNyZWF0ZSArIHN0YWdlZCB0YWJsZSBhcHBlbmRzIHZpYSBDb21wb3NpbyBNQ1ApLgoKIyMgRmlsZXMKCnwgRmlsZSB8IFB1cnBvc2UgfAp8LS0tfC0tLXwKfCBgU0tJTEwubWRgIHwgVGhlIGZ1bGwgc2tpbGw6IHdvcmtmbG93LCBldmlkZW5jZSBydWxlcywgcGl0ZmFsbHMsIG91dHB1dCBmb3JtYXQgfAp8IGBzY3JpcHRzL2Z1bGxfZHVtcC5weWAgfCBTY3JvbGwgQUxMIGNodW5rcyBmb3IgZ2l2ZW4gYGRvY19pZGAgc3Vic3RyaW5ncywgcHJpbnQgdG90YWxzLCBkdW1wIEpTT04gfAojIyBSZXF1aXJlbWVudHMKCi0gUHl0aG9uIDMuMTErLCBgcXVkcmFudC1jbGllbnRgCi0gRW52OiBgUURSQU5UX1VSTGAsIGBRRFJBTlRfQVBJX0tFWWAgKHNvdXJjZSBgfi8uaGVybWVzLy5lbnZgKQotIENvbGxlY3Rpb24gbmFtZTogYHZkY2AgKGRlZmF1bHQ7IG92ZXJyaWRlIHdpdGggYC0tY29sbGVjdGlvbmApCi0gQ29tcG9zaW8gTUNQIHdpdGggYW4gYWN0aXZlIEdvb2dsZSBEb2NzIGNvbm5lY3Rpb24gZm9yIHRoZSBkZWxpdmVyeSBzdGVwCgojIyBJbnN0YWxsIGFzIGEgaGVybWVzIHNraWxsCgoKYGBgYmFzaApjcCAtciAuIH4vLmhlcm1lcy9za2lsbHMvYXV0b21hdGlvbi9zb3AtYXVkaXRvci8KYGBgCgojIyBRdWljayBzdGFydAoKYGBgYmFzaApzb3VyY2Ugfi8uaGVybWVzLy5lbnYKcHl0aG9uIHNjcmlwdHMvZnVsbF9kdW1wLnB5ICJNU1AgMjkiICJSaXNrIFdvcmsgSW5zdHJ1Y3Rpb25zIiAtLWpzb24gZHVtcC5qc29uCnB5dGhvbiBzY3JpcHRzL3NjYW5fdGVybXMucHkgZHVtcC5qc29uCnB5dGhvbiBzY3JpcHRzL2V4dHJhY3Rfc2VjdGlvbi5weSBkdW1wLmpzb24gLS1hbnkgIlJQTiIgIjYwLTEwMDAiICJWREMvTVNQLzI5IgoKYGBgCgojIyBUaGUgZm91bmRpbmcgZmluZGluZyAoZXhhbXBsZSkKClRoZSBSaXNrIEFzc2Vzc21lbnQgbWFzdGVyIFNPUCAoVkRDIE1TUC AyOSkgZGVmaW5lcyBgUlBOID0gU2V2ZXJpdHkgeCBPY2N1cnJlbmNlYCAoMi1mYWN0b3IsIG5vIGRldGVjdGlvbiBheGlzKSwgd2hpbGUgaXRzIG93biB3b3JrIGluc3RydWN0aW9ucyBkZWZpbmUgYFVQTiA9IFNldmVyaXR5IHggT2NjdXJyZW5jZSB4IERldGVjdGlvbmAgKDMtZmFjdG9yKS4gQWNjZXB0YW5jZSBiYW5kcyBhbHNvIGNvbmZsaWN0IChNU1AgMjkgYEFDIDYtMjUgLyBVQUMgMzAtMTAwYCB2cyBXSSBgQUMgMS02MCAvIFVBQyA2MC0xMDAwYCkuIFNhbWUgZmFpbHVyZSBtb2RlLCBvcHBvc2l0ZSByaXNrIHZlcmRpY3QuIE9ubHkgdmlzaWJsZSB2aWEgZnVsbCBkdW1wLgoKIyMgTGljZW5zZQoKTUlUCg==
+# sop-auditor
+
+Hermes skill + scripts for auditing SOPs / work instructions stored as chunks in a
+Qdrant RAG collection — detecting contradictions, missing steps, and compliance gaps,
+then delivering an audit-ready report as a Google Doc via Composio MCP.
+
+## Why this exists
+
+A normal semantic top-k search **misses critical data**. In the founding audit
+(Risk Assessment SOPs), top-k surfaced ~15 of 100 chunks for the master SOP and
+~15 of 290 for the work instructions — the risk matrices and RPN formulas were
+never retrieved (they live in dense tables that don't match natural-language
+queries). That produced a wrong audit which had to be corrected.
+
+The fix is a **full payload-filtered dump** of every chunk for the target documents
+before any analysis. This repo packages that workflow as a reusable Hermes skill.
+
+## What it does
+
+1. Identify target docs from the user request (`doc_id` substrings).
+2. **Full dump** (not top-k) every chunk for those docs via `client.scroll()`.
+3. Scan for the terms that matter (RPN, severity, occurrence, bands, acceptance).
+4. Extract verbatim scales/matrices from each doc.
+5. Cross-document comparison → conflict table.
+6. Findings with severity × category, each grounded in a source chunk.
+7. Deliver as a Google Doc (create + staged table appends via Composio MCP).
+
+## Files
+
+| File | Purpose |
+|---|---|
+| `SKILL.md` | The full skill: workflow, evidence rules, pitfalls, output format |
+| `scripts/full_dump.py` | Scroll ALL chunks for given `doc_id` substrings; print totals / dump JSON |
+| `scripts/scan_terms.py` | Term-hit scanner across dumped chunks |
+| `scripts/extract_section.py` | Verbatim extraction for specific terms/sections |
+
+## Requirements
+
+- Python 3.11+, `qdrant-client`
+- Env: `QDRANT_URL`, `QDRANT_API_KEY` (source `~/.hermes/.env`)
+- Collection name: `vdc` (default; override with `--collection`)
+- Composio MCP with an active Google Docs connection for the delivery step
+
+## Install as a Hermes skill
+
+```bash
+# copy into your Hermes skills dir
+cp -r . ~/.hermes/skills/automation/sop-auditor/
+```
+
+## Quick start
+
+```bash
+source ~/.hermes/.env
+python scripts/full_dump.py "MSP 29" "Risk Work Instructions" --json dump.json
+python scripts/scan_terms.py dump.json
+python scripts/extract_section.py dump.json --any "RPN" "60-1000" "VDC/MSP/29"
+```
+
+## The founding finding (example)
+
+The Risk Assessment master SOP (VDC MSP 29) defines `RPN = Severity × Occurrence`
+(2-factor, no detection axis), while its own work instructions define
+`RPN = Severity × Occurrence × Detection` (3-factor). Acceptance bands also conflict
+(MSP 29 `AC 6–25 / UAC 30–100` vs WI `AC 1–60 / UAC 60–1000`). Same failure mode,
+opposite risk verdict. Only visible via full dump.
+
+## License
+
+MIT
