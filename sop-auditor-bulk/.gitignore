@@ -1,0 +1,13 @@
+# Python
+__pycache__/
+*.pyc
+.venv*/
+venv/
+
+# Dumps / scan outputs (large, regenerate locally)
+*.jsonl
+*.json
+all_vdc_chunks.jsonl
+au_series_deficiency_matrix.json
+deficiency_matrix.json
+dump*.json

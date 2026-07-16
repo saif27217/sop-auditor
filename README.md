@@ -65,6 +65,15 @@ The Risk Assessment master SOP (VDC MSP 29) defines `RPN = Severity × Occurrenc
 (MSP 29 `AC 6–25 / UAC 30–100` vs WI `AC 1–60 / UAC 60–1000`). Same failure mode,
 opposite risk verdict. Only visible via full dump.
 
+## Companion skill: `sop-auditor-bulk`
+
+For **database-wide / family-wide** audits, see [`sop-auditor-bulk/`](sop-auditor-bulk/).
+It dumps the *entire* collection (background-safe, defeats the 60s scroll
+timeout), classifies every SOP against the recurring-gap checklist, and
+delivers a consolidated audit as a Google Doc. Use it for scope-wide questions
+("does any SOP carry validation data?", "what common deficiencies exist
+across the whole AU-series?").
+
 ## License
 
 MIT
