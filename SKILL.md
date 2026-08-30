@@ -396,6 +396,37 @@ Deliver the scorecard as its own section in the audit Doc (see
 (2026-08-29, Google Doc `1vlJmENywiFdaTqYM2CZMCgIbfzdpZNHFVH_0T8Gh3aU`) is the worked
 example of this full-lifecycle approach.
 
+## Reference Section Audit (SOP §4.19 or equivalent)
+
+After the 18-section lifecycle walk, audit the **References** section as a standalone
+section in the audit Doc. This was formalized during the BIO 166 v2 audit (2026-08-30).
+
+**Mandatory checklist:**
+1. **Primary method reference** — is the kit insert / manufacturer manual cited? (e.g. "Roche Cobas Trop T sensitive kit insert")
+2. **Internal SOP references** — are supporting procedures cited? (e.g. "VDC/MSP/14 - Primary Sample Collection Manual", "VDC/MSP/20 - Reporting of Results")
+3. **Traceability** — do Critical Values / Sample Collection clauses point to these references? (e.g. "report immediately per VDC/MSP/20")
+4. **Appendices / Forms** — are any forms, logs, or work instructions referenced? (e.g. "Appendices/Forms/WIs/Logs: None" or list them)
+5. **Completeness** — no missing references; no orphan citations (a reference cited in the body but not listed in §4.19 is a finding)
+
+**Assessment:** GOOD (complete, well-traced) / PARTIAL (missing one internal reference) / GAP (no references cited).
+
+The BIO 166 v2 audit (Google Doc `168cT6_bK4UwUlKcmbzjHJY4HzEZcOwAqj5ZOOqaPCJI`) is the worked example — its reference section was rated STRONG (Roche insert + MSP/14 + MSP/20, all well-traced).
+
+## Grammar, Spelling & Clinical-Accuracy Scan
+
+After the lifecycle walk and reference audit, run a **Grammar/Spelling/Clinical-Accuracy scan** as a standalone section. This was formalized during the BIO 166 v2 audit (2026-08-30).
+
+**Mandatory checklist:**
+1. **Spelling consistency** — flag mixed British/US spelling (e.g. "hemolysis" vs "haemolysed"). Recommend standardizing to one convention (British preferred in Indian lab SOPs).
+2. **Clinical terminology** — verify key terms match the kit insert (e.g. "chromatographic immunoassay", "myocardial infarction", "lateral flow"). No clinical errors detected in BIO 166.
+3. **Clinical accuracy** — verify clinical statements match the kit insert AND standard references (e.g. "cTnT rises 2-10 h after AMI onset, detectable up to 14 days" — clinically correct per Roche literature).
+4. **Interference thresholds** — verify numeric limits match the kit insert exactly (e.g. bilirubin ≤20, Hb ≤200, TG ≤500, biotin ≤100).
+5. **No clinical errors** — flag any statement that contradicts standard cardiology / biochemistry references.
+
+**Assessment:** GOOD (no errors) / PARTIAL (1–2 spelling inconsistencies, no clinical errors) / GAP (clinical error detected).
+
+The BIO 166 v2 audit rated this section GOOD — one spelling inconsistency (hemolysis vs haemolysed), no clinical errors, all statements verified against the kit insert and standard references.
+
 ## Scripts
 
 > **Runtime setup (this host):** the system `python3` does NOT have `qdrant_client`.
