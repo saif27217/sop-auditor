@@ -427,6 +427,35 @@ After the lifecycle walk and reference audit, run a **Grammar/Spelling/Clinical-
 
 The BIO 166 v2 audit rated this section GOOD — one spelling inconsistency (hemolysis vs haemolysed), no clinical errors, all statements verified against the kit insert and standard references.
 
+## 3-Source Clinical Data Verification (NEW — 2026-08-31)
+
+After the lifecycle walk, reference audit, and grammar/clinical scan, run a **3-source verification** against Qdrant collections. This catches errors the kit-insert-only audit misses: textbook reference ranges, clinical interpretations from Harrison's, and test catalog cross-checks.
+
+**Mandatory verification sources:**
+1. **`biochem-v1`** (26,303 points) — Biochemistry textbook. Query for:
+   - Reference ranges (verify SOP's range matches textbook)
+   - Analyte info (mechanism, pathophysiology context)
+   - Interference data (cross-check SOP's interference list against textbook)
+2. **`harrison-22nd`** (39,460 points) — Harrison's Principles of Internal Medicine. Query for:
+   - Clinical interpretations (verify SOP's interpretation text matches Harrison's)
+   - Disease context (e.g. "cTnT rises 2-10h after AMI" — verify against Harrison's cardiology chapter)
+   - Critical value thresholds (verify SOP's critical values match Harrison's clinical guidance)
+3. **`lab-tests-galore`** (4,014 points) — Lab test catalog. Query for:
+   - Service code (verify SOP's service code matches catalog)
+   - Department (verify SOP's department matches catalog)
+   - Processing type (Local/OutSource — verify SOP's processing matches catalog)
+   - Reference ranges (verify SOP's range matches catalog's range)
+   - TAT (verify SOP's TAT matches catalog's schedule mode)
+
+**Verification method:**
+- Use `qdrant_client` to query each collection with a keyword search (e.g. `"albumin reference range"`, `"troponin T critical value Harrison's"`).
+- Compare retrieved context against SOP text. Flag discrepancies as findings (severity: High if critical value mismatch, Medium if range differs by >10%, Low if minor wording difference).
+- Cite source collection and point ID in findings (e.g. `[biochem-v1: point_12345]`).
+
+**Assessment:** VERIFIED (all 3 sources agree) / PARTIAL (1–2 sources disagree, minor) / GAP (critical value mismatch or textbook contradicts SOP).
+
+The BIO 166 v2 audit rated this VERIFIED — all 3 sources agreed on troponin T critical values, reference ranges, and clinical interpretations.
+
 ## Scripts
 
 > **Runtime setup (this host):** the system `python3` does NOT have `qdrant_client`.
