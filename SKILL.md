@@ -227,6 +227,76 @@ them directly via `mcp__composio__COMPOSIO_MULTI_EXECUTE_TOOL` (pass a valid
   "Insufficient evidence found in retrieved documents."
 - State uncertainty. Distinguish "missing from docs" from "failed to retrieve".
 
+## Strict Reverification Policy (MANDATORY — added 2026-09-07)
+
+**Every finding must be verified against at least one explicitly loaded file before being written.**
+This policy was added after the BIO/149 audit where "gray port = empty" and
+"press IN+OUT keys simultaneously" were written without verification against loaded files,
+causing the user to lose trust in audit accuracy.
+
+### The 3-Tier Verification Ladder (apply in order)
+
+**Tier 1 — Loaded Data File (highest confidence):**
+Verify the finding against an explicitly loaded JSON, Python script, or text file.
+Examples: `data/error_codes.json`, `data/troubleshooting.json`, `data/specs.json`,
+`scripts/maintenance_checklist.py`. If the finding exists in a loaded file, mark it
+as **VERIFIED** and cite the exact filename.
+
+**Tier 2 — Skill Summary Line (medium confidence):**
+If a detail appears ONLY in the SKILL.md summary text (not in any loaded file), mark it
+as **PARTIALLY VERIFIED — from skill summary only**. Do NOT present it as fact.
+Examples: tube color-coding (yellow/red/blue/green) from pw40-pw41-plate-washer SKILL.md
+summary — valid as a gap finding (SOP missing it) but the specific detail about "gray port"
+cannot be verified from any loaded file.
+
+**Tier 3 — Inferred from TOC (lowest confidence):**
+If a finding is inferred solely from the table of contents (TOC) — e.g., "Section 3/4
+exists, therefore the SOP should cover wash interruption" — mark it as **VERIFIED (TOC only)**.
+Do NOT invent specific implementation details (key combinations, exact menu paths) that are
+not in a loaded file. The TOC proves the topic exists in the reference manual, but not
+the exact steps.
+
+### What to Do When a Finding Fails Verification
+
+1. **Remove the unverified detail** from the finding text entirely.
+2. **Keep the gap finding itself** if it's valid (SOP missing content that exists in reference).
+3. **Rewrite the suggested change** to remove all unverified specifics — use generic language
+   like "see operator manual for details" instead of inventing steps.
+4. **Add a note** to the finding: "Detail X was removed during reverification — not found
+   in any loaded file."
+
+### Pre-Push Checklist (before delivering Google Doc)
+
+Before pushing ANY audit report, run this checklist:
+- [ ] Every finding cites at least one loaded file (filename + section)
+- [ ] No specific implementation detail comes from memory or inference alone
+- [ ] "PARTIALLY VERIFIED" findings are clearly labeled and flagged for user confirmation
+- [ ] No "gray port," "IN+OUT keys," or similar specifics appear without file citation
+- [ ] All error codes, parameters, methods verified against their respective JSON files
+- [ ] SOP text quotes match the actual exported document (verified via extraction)
+
+### Post-Audit Verification Script Pattern
+
+After building an audit report, run a verification script that:
+1. Loads every data file from the reference skill (JSON + scripts)
+2. Searches each loaded file for keywords from every finding
+3. Reports: VERIFIED (found in file X), PARTIALLY VERIFIED (only in SKILL.md summary),
+   or UNVERIFIED (not found anywhere — remove from report)
+
+Example verification script structure:
+```python
+# For each finding, search all loaded files for the key claim
+for finding in findings:
+    found_in = []
+    for loaded_file in all_loaded_files:
+        if finding.detail in loaded_file.content:
+            found_in.append(loaded_file.name)
+    if not found_in:
+        print(f"REMOVE {finding.id}: '{finding.detail}' not in any loaded file")
+    else:
+        print(f"KEEP {finding.id}: found in {found_in}")
+```
+
 ## Pitfalls (learned the hard way)
 
 1. **Top-k blindness** — semantic search hides tables/matrices. Always full-dump.
