@@ -120,14 +120,17 @@ Search for these phrases. Each represents a commitment without a trigger:
 | Spill procedure — clean-up protocol | Medium |
 | Waste disposal — BMW category, method | Medium |
 
-## 9. Document Control Checklist
+## 9. Document Control Checklist (ISO 15189 §8.3 a-i)
 
 | Item | Severity if missing |
 |---|---|
-| Amendment log — records of changes with dates | Medium |
-| Version number — current and consistent | Medium |
-| Review/expiry clause (§7.0 or equivalent) | Medium |
-| Author/approver signatures present | Low |
+| Unique document ID | Medium |
+| Approval before issue by authorized personnel | High |
+| Periodic review clause with frequency + owner | Medium |
+| Revision status tracked (version control) | Medium |
+| Obsolete docs identified + retained copies | Medium |
+| Unauthorized access protection | Medium |
+| Amendment log with dates | Medium |
 
 ## 10. Numerical Consistency Checks
 
@@ -159,6 +162,18 @@ For SOPs with derived calculations (ratios, gradients, indices, clearances):
 - **Empty fields** — fields set to "NA" that should have content
 - **Placeholder language** — "Refer to manual" without specifying which
 - **Orphan references** — SOPs/forms referenced but not in doc tree
+
+## 13. NABL-112 Specific Checks
+
+| Item | Severity if missing |
+|---|---|
+| Calibration traceability to CRM/reference method (ISO 17511) | High |
+| NPL India or MRA partner lab cited for calibration | Medium |
+| Risk assessment SOP referenced (e.g. MSP 29) | High |
+| Interference limits with numeric thresholds stated | Medium |
+| Rejection criteria matrix-appropriate (not serum-plasma boilerplate for DBS) | High |
+| Reagent-specific H-codes in safety section | Medium |
+| References include kit insert + internal SOPs (MSP/14, MSP/20) | Medium |
 
 ---
 

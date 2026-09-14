@@ -17,3 +17,8 @@ recur across the VDC BIO AU-series and are usually the real findings, not contra
 | 8 | **Reagent / sample stability** | Are stability conditions stated (unopened, on-board, after reconstitution)? | NABL-112 § Reagents |
 | 9 | **Traceability of calibrator** | Is the calibrator traceable to a reference material / higher-order method? | ISO 15189:2022 5.3.1.5 |
 | 10 | **Interference limits** | Are haemolysis/icterus/lipaemia thresholds given with the analysis method? | NABL-112 § |
+| 11 | **Document control compliance** | Unique ID, approval before issue, revision status tracked, obsolete docs identified (ISO 15189 §8.3 a-i) | ISO 15189:2022 8.3; NABL-112 § Document Control |
+| 12 | **Calibration traceability** | CRM or reference method cited (ISO 17511); NPL India or MRA partner lab | NABL-112 § Metrology; ISO 15189:2022 6.5 |
+| 13 | **Rejection criteria matrix-appropriate** | DBS SOP must NOT list serum-plasma rejects (haemolysed/lipemic/icteric); keep only matrix-relevant criteria | NABL-112 § Pre-examination |
+| 14 | **Safety — reagent-specific hazards** | GLP + H-codes for reagents (e.g. TCA H315, sodium azide plumbing warning) | NABL-112 § Safety; ISO 15189:2022 4.3 |
+| 15 | **References completeness** | Kit insert + internal SOPs (MSP/14, MSP/20) + standards cited; no orphan citations | ISO 15189:2022 7.3.6; NABL-112 § References |

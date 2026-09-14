@@ -581,4 +581,8 @@ The BIO 166 v2 audit rated this VERIFIED — all 3 sources agreed on troponin T 
   scan, pre/post-analytical checklists, QC detail, calibration detail, safety, document
   control, numerical consistency, operational workflow gaps, and orphan references.
   Produced 9 additional findings when applied to VDC BIO 01.
+- `references/sop-structure-template.md` — 21-section mandatory SOP framework for
+  **writing new SOPs** or auditing existing ones against ISO 15189:2022 §7.3.6 and
+  NABL-112. Includes assessment scale (GOOD/OK/PARTIAL/GAP) and worked example
+  (VDC BIO 166 v2). Use BEFORE drafting findings to establish structural baseline.
 
