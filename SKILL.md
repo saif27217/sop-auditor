@@ -1,7 +1,7 @@
 ---
 name: sop-auditor
 description: "Audit SOPs and controlled documents retrieved from a Qdrant RAG collection for discrepancies, contradictions, missing steps, and compliance gaps. Use when asked to audit, review, or reconcile SOPs / work instructions / procedures against standards (ISO 15189, NABL, ISO 13485, CLIA, etc.). Covers the full workflow: broad retrieval (with a full payload dump to defeat semantic top-k blindness), discrepancy analysis, and delivery as a Google Doc via Composio MCP."
-version: 1.2.0
+version: 1.2.1
 author: Sak / Lazer
 license: MIT
 platforms: [linux]
@@ -104,17 +104,27 @@ Do not mix the two. A SOP that lives as a Google Doc does not need Qdrant enumer
    + staged `GOOGLEDOCS_UPDATE_DOCUMENT_SECTION_MARKDOWN` calls (Step 7). If delivery
    fails, write the full audit to `/home/sak/sop_audit_<name>.md` and report the path.
 
-**Pitfall — platform mismatch: the kit insert is the source of truth.** When the SOP's
-analyzer differs from the kit-insert skill's analyzer, the **kit insert wins** — the SOP
-is the document under audit and the artifact that gets corrected. Never offer to rebuild
-the kit-insert skill to match a divergent SOP, and never soften findings because of the
-mismatch. Check for the mismatch up front (skill SKILL.md states kit/analyzer/insert;
-SOP §Equipment states its analyzer), then audit every kit-specific value (interference
-thresholds, cross-reactivity, precision/CV, stability, AMR, reference intervals) **against
-the kit insert** and report each divergent SOP value as a finding — High when the SOP
-states a wrong number, Medium when it omits a kit value. Withhold kit-specific findings
-only when the correct insert is genuinely unavailable, and then state exactly which insert
-is needed. The verdict is a **SOP rewrite / gap analysis**, not amendments.
+**Pitfall — platform mismatch: classify WHICH mismatch before choosing a source of truth.**
+Read the skill's SKILL.md (kit/analyzer/insert) and the SOP's §Equipment, then pick a branch.
+Getting this wrong silently injects a different product's numbers into a live SOP.
+
+1. **Same vendor lineage, SOP platform retired** (e.g. an old assay superseded by the new one on
+   the same analyzer; Immulite retired and cobas live) → the **kit insert governs**; the SOP is
+   the artifact that gets corrected. Audit every kit-specific value against the insert: High if
+   the SOP states a wrong number, Medium if it omits a kit value. Verdict: **rewrite**.
+2. **Different vendor and/or different analytical principle** (e.g. SOP = Siemens BN ProSpec
+   immunonephelometry / rabbit antiserum; skill = Beckman OSR6143 immunoturbidimetry / goat
+   antibody) → **the skill is NOT the source of truth.** Do NOT write the skill's AMR, reference
+   intervals, interference limits, stability, calibrator/traceability or precision into the SOP —
+   different product, different principle, different numbers. The SOP's **own** vendor insert
+   (the Siemens BRR) governs. If it was not supplied: deliver the platform-independent findings,
+   present the side-by-side as **migration reference only**, and state plainly which insert must
+   be supplied. Verdict: **PARTIAL + platform decision** — never "rewrite for the other vendor".
+3. **Both platforms live** → two SOPs, one per platform; scope this one to its own analyzer.
+
+Withhold a kit-specific finding only when the governing insert is genuinely unavailable, and then
+name the exact insert needed. Never offer to rebuild the kit-insert skill, and never soften
+findings because of the mismatch.
 
 **Rule — not every SOP field has a kit counterpart.** Inserts commonly omit biological
 reference intervals, clinical decision values, calibration frequency, TAT and critical-value
@@ -486,8 +496,9 @@ and do NOT offer to rebuild the kit-insert skill to match the SOP. Instead:
    stability, AMR, reference intervals) against the **kit insert**.
 3. Report each SOP value that diverges — **High** if the SOP states a wrong number,
    **Medium** if it omits a value the insert provides, **Low** if wording differs.
-4. Verdict framing: a **rewrite / gap analysis of the SOP** for the kit-insert platform.
-   Never "amendments to the retired platform," never "rebuild the skill."
+4. Verdict framing follows the branch: **rewrite** (same vendor lineage) or **PARTIAL +
+   platform decision** (different vendor/principle). Never "amendments to the retired platform,"
+   never "rebuild the skill."
 
 Withholding kit-specific findings is correct only when the correct insert is genuinely
 unavailable — then name the exact insert needed (manufacturer, catalog, analyzer) so the
