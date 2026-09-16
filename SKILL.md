@@ -1,7 +1,7 @@
 ---
 name: sop-auditor
 description: "Audit SOPs and controlled documents retrieved from a Qdrant RAG collection for discrepancies, contradictions, missing steps, and compliance gaps. Use when asked to audit, review, or reconcile SOPs / work instructions / procedures against standards (ISO 15189, NABL, ISO 13485, CLIA, etc.). Covers the full workflow: broad retrieval (with a full payload dump to defeat semantic top-k blindness), discrepancy analysis, and delivery as a Google Doc via Composio MCP."
-version: 1.2.3
+version: 1.2.4
 author: Sak / Lazer
 license: MIT
 platforms: [linux]
@@ -104,48 +104,58 @@ Do not mix the two. A SOP that lives as a Google Doc does not need Qdrant enumer
    + staged `GOOGLEDOCS_UPDATE_DOCUMENT_SECTION_MARKDOWN` calls (Step 7). If delivery
    fails, write the full audit to `/home/sak/sop_audit_<name>.md` and report the path.
 
-**Pitfall — platform mismatch: classify WHICH mismatch before choosing a source of truth.**
-Read the skill's SKILL.md (kit/analyzer/insert) and the SOP's §Equipment, then pick a branch.
-Getting this wrong silently injects a different product's numbers into a live SOP.
+**Pitfall — platform mismatch: the supplied kit insert sets the target platform.**
+Read the skill's SKILL.md (instrument / kit / insert) and the SOP's §Equipment, then act.
 
-1. **Same vendor lineage, SOP platform retired** (e.g. an old assay superseded by the new one on
-   the same analyzer; Immulite retired and cobas live) → the **kit insert governs**; the SOP is
-   the artifact that gets corrected. Audit every kit-specific value against the insert: High if
-   the SOP states a wrong number, Medium if it omits a kit value. Verdict: **rewrite**.
+1. **The insert's instrument differs from the SOP's incumbent instrument** — whether by name only,
+   by a superseded assay, by vendor, or by analytical principle — → the SOP is **rewritten to the
+   insert's instrument**, and the incumbent instrument becomes the migration reference. Audit every
+   kit-specific value against the insert: **High** if the SOP states a wrong number, **Medium** if it
+   omits a value the insert provides.
 2. **Different vendor and/or different analytical principle** (e.g. SOP = Siemens BN ProSpec
-   immunonephelometry / rabbit antiserum; skill = Beckman OSR6143 immunoturbidimetry / goat
-   antibody) → **the skill is NOT the source of truth.** Do NOT write the skill's AMR, reference
-   intervals, interference limits, stability, calibrator/traceability or precision into the SOP —
-   different product, different principle, different numbers. The SOP's **own** vendor insert
-   (the Siemens BRR) governs. If it was not supplied: deliver the platform-independent findings,
-   present the side-by-side as **migration reference only**, and state plainly which insert must
-   be supplied. Verdict: **PARTIAL + platform decision** — never "rewrite for the other vendor".
-3. **Both platforms live** → two SOPs, one per platform; scope this one to its own analyzer.
+   immunonephelometry / rabbit antiserum / SP3-07; insert = Beckman OSR6143 immunoturbidimetry / goat
+   antibody / SP3-08) → still rewrite for the insert's instrument, but **state only the numbers the
+   insert actually gives**. A value the insert does not state stays `[NEEDS <INSERT>]`; never carry
+   the incumbent platform's number across the change. Different product, different principle,
+   different numbers — so the transfer limits belong in a migration appendix, never in a refusal to
+   rewrite.
+3. **Both instruments live** → two SOPs, one per instrument; this rewrite covers the insert's.
+
+Do not mistake a numeric-transfer limit for a platform limit: **the insert decides the platform in
+every branch**; only the concreteness of individual values varies. Never offer to rebuild the
+kit-insert skill, never soften findings because of the mismatch, and never return the incumbent
+instrument as the rewrite target.
 
 Withhold a kit-specific finding only when the governing insert is genuinely unavailable, and then
 name the exact insert needed. Never offer to rebuild the kit-insert skill, and never soften
 findings because of the mismatch.
 
-**Rule — decide the deliverable from the NATURE of the difference, not from the vendor alone.**
-Classify the difference first, then act. Do not ask the user to choose a mode.
+**Rule — the rewrite target is the KIT INSERT'S INSTRUMENT. Always.**
+When the user supplies a kit-insert skill as the audit basis ("based on this skill-<kit>", "based on
+this kit insert"), that insert **defines the target platform**: the SOP is rewritten to conform to the
+instrument the insert describes — **Optilite, AU/DxC, BN ProSpec, cobas, Immulite, whatever it is**.
+The insert's instrument is the target by definition; the user should not have to restate it, and
+naming it again ("we are using AU now") merely confirms what the insert already said. The SOP's
+incumbent instrument becomes the **deprecated / migration reference** — never the governing body, and
+never the platform you rewrite for.
 
-| Difference observed | Source of truth | Deliverable |
-|---|---|---|
-| Instrument **name** only — same vendor, same method | The SOP's own insert; the name is a documentation error | **Rewrite** incl. the corrected instrument name |
-| Same analyzer, **assay superseded** (old catalog → new) | The new insert | **Rewrite** — kit governs |
-| Different vendor, **same principle/method** (two turbidimetric kits) | The SOP's own insert governs; skill rows are cross-reference only | **Rewrite** for the SOP's platform; side-by-side as comparison |
-| Different vendor **AND** different principle/method (nephelometry vs turbidimetry; different antibody / standard / traceability) | The SOP's own vendor insert — **unless the user names a target platform** | **Rewrite every platform-independent section now**; mark only the unverifiable numerics `[NEEDS <DOC>]` |
+What the *nature* of the difference decides is **not which** platform you rewrite for. It decides
+**how much of each number you can state with confidence**:
 
-**An explicit user instruction overrides this classification — it never substitutes for one.**
-When the user names the rewrite target — "rewrite it based on the kit insert", "sop rewrite based on
-<skill>", "we are using AU now", "the lab has migrated" — that instruction IS the source of truth:
-**rewrite the SOP for that platform**, and demote the incumbent platform's values to a
-migration-reference appendix. This holds in the cross-vendor/cross-principle row too.
-An explicit "rewrite for platform X" answered with PARTIAL + a question is a **refused
-instruction**, not a finding — the worst possible output. If the user's target disagrees with your
-classification, follow the user and state the conflict in one line inside the deliverable. A
-statement that the lab has migrated also retires the incumbent platform: the SOP is rewritten for
-the live platform, and the retired one becomes history, not the governing body.
+| SOP's incumbent platform vs the kit insert | What you write |
+|---|---|
+| Same instrument; only the name or catalog differs | Correct the name/catalog; every insert value applies as-is |
+| Same analyzer, **assay superseded** | Full rewrite to the new insert; its values apply |
+| Different vendor, **same principle** | Full rewrite to the insert's instrument; transfer the numerics, flag any the insert does not state |
+| Different vendor **AND** different principle (nephelometry vs turbidimetry, rabbit vs goat, SP3-07 vs SP3-08) | Full rewrite to the insert's instrument; insert-stated values concrete, unstated values `[NEEDS <INSERT>]` — never carry the incumbent's numbers across |
+| **No kit insert supplied at all** | Nothing to conform to: the SOP's own platform governs and the job is audit-only |
+
+**A cross-vendor or cross-principle mismatch limits which *numbers* you may state — it never limits
+*which platform* you rewrite for.** The insert governs the platform; the classification governs only
+confidence. Demote the incumbent platform to a migration appendix and state the transfer limits there.
+Rewriting for the incumbent instrument instead of the insert's is a **refused instruction**, not a
+findings set. Only if the user explicitly names a target that *contradicts* the insert do you follow
+the user — and then flag the conflict in one line inside the deliverable.
 
 **Never end an audit with only questions.** Deliver the rewrite for everything that does not depend
 on a missing document, list the exact values still open, and name the document that closes them.
@@ -529,9 +539,9 @@ and do NOT offer to rebuild the kit-insert skill to match the SOP. Instead:
    stability, AMR, reference intervals) against the **kit insert**.
 3. Report each SOP value that diverges — **High** if the SOP states a wrong number,
    **Medium** if it omits a value the insert provides, **Low** if wording differs.
-4. Verdict framing follows the branch: **rewrite** (same vendor lineage) or **PARTIAL +
-   platform decision** (different vendor/principle). Never "amendments to the retired platform,"
-   never "rebuild the skill."
+4. Verdict framing: **rewrite to the kit insert's instrument** in every mismatch branch. The
+   incumbent instrument is the migration reference, never the rewrite target. Never "amendments to
+   the retired platform," never "rebuild the skill."
 
 Withholding kit-specific findings is correct only when the correct insert is genuinely
 unavailable — then name the exact insert needed (manufacturer, catalog, analyzer) so the
