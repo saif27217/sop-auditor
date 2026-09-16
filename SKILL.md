@@ -1,7 +1,7 @@
 ---
 name: sop-auditor
 description: "Audit SOPs and controlled documents retrieved from a Qdrant RAG collection for discrepancies, contradictions, missing steps, and compliance gaps. Use when asked to audit, review, or reconcile SOPs / work instructions / procedures against standards (ISO 15189, NABL, ISO 13485, CLIA, etc.). Covers the full workflow: broad retrieval (with a full payload dump to defeat semantic top-k blindness), discrepancy analysis, and delivery as a Google Doc via Composio MCP."
-version: 1.1.1
+version: 1.1.2
 author: Sak / Lazer
 license: MIT
 platforms: [linux]
@@ -115,6 +115,15 @@ the kit insert** and report each divergent SOP value as a finding — High when 
 states a wrong number, Medium when it omits a kit value. Withhold kit-specific findings
 only when the correct insert is genuinely unavailable, and then state exactly which insert
 is needed. The verdict is a **SOP rewrite / gap analysis**, not amendments.
+
+**Rule — not every SOP field has a kit counterpart.** Inserts commonly omit biological
+reference intervals, clinical decision values, calibration frequency, TAT and critical-value
+thresholds — and some state that absence explicitly (e.g. the Elecsys calcitonin insert has
+no reference interval and no calibration frequency). Mark each such field `[LAB-DEFINED]`,
+name what the lab must supply, and never borrow a number from another platform or invent one.
+Keep the manufacturer's precision claim distinct from the lab's validated %CV; an SOP quoting
+a CV far outside the insert's claim (e.g. 26.5% against 1.2–3.1%) is a finding, not a
+value to overwrite with the kit figure.
 
 **Pitfall — legacy `.doc` format.** A `.doc` reported by `file` as "Composite Document
 File V2 Document, Little Endian" is the Word 97 binary format (not OOXML `.docx`).
