@@ -1,7 +1,7 @@
 ---
 name: sop-auditor
 description: "Audit SOPs and controlled documents retrieved from a Qdrant RAG collection for discrepancies, contradictions, missing steps, and compliance gaps. Use when asked to audit, review, or reconcile SOPs / work instructions / procedures against standards (ISO 15189, NABL, ISO 13485, CLIA, etc.). Covers the full workflow: broad retrieval (with a full payload dump to defeat semantic top-k blindness), discrepancy analysis, and delivery as a Google Doc via Composio MCP."
-version: 1.2.2
+version: 1.2.3
 author: Sak / Lazer
 license: MIT
 platforms: [linux]
@@ -134,7 +134,18 @@ Classify the difference first, then act. Do not ask the user to choose a mode.
 | Instrument **name** only — same vendor, same method | The SOP's own insert; the name is a documentation error | **Rewrite** incl. the corrected instrument name |
 | Same analyzer, **assay superseded** (old catalog → new) | The new insert | **Rewrite** — kit governs |
 | Different vendor, **same principle/method** (two turbidimetric kits) | The SOP's own insert governs; skill rows are cross-reference only | **Rewrite** for the SOP's platform; side-by-side as comparison |
-| Different vendor **AND** different principle/method (nephelometry vs turbidimetry; different antibody / standard / traceability) | The SOP's own vendor insert, which must be supplied | **Rewrite every platform-independent section now**; mark only the unverifiable numerics `[NEEDS <DOC>]` |
+| Different vendor **AND** different principle/method (nephelometry vs turbidimetry; different antibody / standard / traceability) | The SOP's own vendor insert — **unless the user names a target platform** | **Rewrite every platform-independent section now**; mark only the unverifiable numerics `[NEEDS <DOC>]` |
+
+**An explicit user instruction overrides this classification — it never substitutes for one.**
+When the user names the rewrite target — "rewrite it based on the kit insert", "sop rewrite based on
+<skill>", "we are using AU now", "the lab has migrated" — that instruction IS the source of truth:
+**rewrite the SOP for that platform**, and demote the incumbent platform's values to a
+migration-reference appendix. This holds in the cross-vendor/cross-principle row too.
+An explicit "rewrite for platform X" answered with PARTIAL + a question is a **refused
+instruction**, not a finding — the worst possible output. If the user's target disagrees with your
+classification, follow the user and state the conflict in one line inside the deliverable. A
+statement that the lab has migrated also retires the incumbent platform: the SOP is rewritten for
+the live platform, and the retired one becomes history, not the governing body.
 
 **Never end an audit with only questions.** Deliver the rewrite for everything that does not depend
 on a missing document, list the exact values still open, and name the document that closes them.
@@ -691,7 +702,19 @@ The BIO 166 v2 audit rated this VERIFIED — all 3 sources agreed on troponin T 
   JSONL against the recurring-gap checklist (Accuracy/Specificity/TAT/review/CLSI/
   calibration/critical/LOQ/MSP29); emits a per-SOP matrix + aggregate JSON.
 
+**Write the rewrite progressively, not at the end.** An audit that exhausts its turn budget loses
+its tail, and the rewrite is the tail. Push each rewritten section into the deliverable document the
+moment its finding is confirmed — never hold the whole rewritten SOP in context to compose at the
+finish. A budget wall must be able to truncate your work, not delete it. Corollary: never spend a
+turn re-reading a file you already hold, and never re-load the skill mid-audit.
+
 ## References (support files)
+
+**Load lean — the turn budget is the binding constraint.** A full audit needs only `SKILL.md` +
+`references/common-sop-gaps.md` + `references/sop-structure-template.md` (3 reads). Every other file
+below is **optional and on-demand** — read an example only when its pattern matches the SOP in front
+of you. Loading every reference up front costs ~9 turns before any audit work begins, and a model
+that loops will never reach the rewrite.
 
 - `references/common-sop-gaps.md` — 15-dimension pre-flight checklist for every SOP
   (TAT, calibration frequency, method verification/validation, periodic review, risk-SOP
