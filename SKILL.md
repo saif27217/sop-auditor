@@ -1,7 +1,7 @@
 ---
 name: sop-auditor
 description: "Audit SOPs and controlled documents retrieved from a Qdrant RAG collection for discrepancies, contradictions, missing steps, and compliance gaps. Use when asked to audit, review, or reconcile SOPs / work instructions / procedures against standards (ISO 15189, NABL, ISO 13485, CLIA, etc.). Covers the full workflow: broad retrieval (with a full payload dump to defeat semantic top-k blindness), discrepancy analysis, and delivery as a Google Doc via Composio MCP."
-version: 1.1.2
+version: 1.2.0
 author: Sak / Lazer
 license: MIT
 platforms: [linux]
@@ -512,63 +512,12 @@ delivered. The first pass in this skill's workflow MUST be:
    preliminary list of obvious gaps, but it is **not the audit output** —
    it is a HEADSTART only.
 
-2. **Full-lifecycle section walk — ALL 18 sections, every time.** Walk every
-   section in this order and record a status per section (GOOD / OK / PARTIAL /
-   GAP / CONTRADICTION) in a scorecard:
-
-   1. **Purpose & Scope** — does it state the test's intent AND its limits
-      (screening-only? not for confirmatory use)? Does the purpose statement
-      match the specimen section (serum vs serum/plasma)?
-   2. **Definitions / Abbreviations** — are ALL abbreviations used in the body
-      defined? Include ones like LCLL/LCLH, PSC, SC, lyophilized, aliquot,
-      on-board, MTC.
-   3. **Responsibility / Competency** — who is authorised; any training
-      prerequisite? Are critical-path roles assigned (who calibrates, who
-      reports criticals, who is EQA coordinator, who investigates QC failures,
-      who handles sample rejection)?
-   4. **Sample Type** — matrix + container; verify vs kit insert.
-   5. **Collection Timing** — window (e.g. fasting required? special timing?);
-      flag "NA" fields that contradict stated windows elsewhere.
-   6. **Handling / Transport / Stability** — temp, duration, freeze-thaw;
-      verify vs kit storage clause.
-   7. **Rejection Criteria** — MUST be matrix-appropriate. State quantitative
-      thresholds from the kit insert (hemoglobin mg/dL, triglycerides mg/dL,
-      bilirubin mg/L) instead of qualitative ("grossly haemolysed").
-      Separate administrative rejections (billing) from specimen rejections.
-   8. **Test Procedure (step-wise)** — reproduce each step (volumes, incubation,
-      read mode) and compare line-by-line vs the kit insert.
-   9. **Calculation** — formula vs kit; units consistent.
-   10. **IQC / EQC** — levels, frequency, Westgard rules, post-maintenance
-       re-qualification, reference to internal QC SOP (e.g. MSP/18).
-   11. **Calibration Frequency** — beyond "when kit opened"; traceability;
-       define "significant shift" concretely.
-   12. **Performance** — Precision (%CV) & MU vs kit's validated CV; Accuracy;
-       Specificity (numeric or cross-ref); flag magnitudes ~2× the kit as
-       CAPA-level.
-   13. **AMR / LOD / LOQ** — internal consistency (LOD ≤ LOQ ≤ AMR) and vs kit
-       sensitivity.
-   14. **Reference Interval** — sourced/locally validated, or a fixed number with
-       no basis?
-   15. **Limitations / Potential Sources of Variation** — list ALL kit-cited
-       cautions. An SOP that lists only one while the kit lists five is PARTIAL.
-       Move heterophilic/HAMA interference here from wherever it currently sits
-       (it belongs in Interferences, not in a generic "sources of variation"
-       section, unless the SOP's §4.10 specifically addresses interferences
-       separately — reconcile accordingly).
-   16. **Safety** — generic GLP PLUS reagent-specific hazards (e.g. eye
-       protection, first aid, SDS location). Flag if only generic rules present.
-   17. **Clinical Interpretation** — lead with the primary indication (MTC for
-       calcitonin, AMI for troponin, etc.). Do not bury the primary use under
-       secondary differential diagnoses. Include MEN2 surveillance, post-treatment
-       monitoring, physiological causes, and obstetric/benign conditions where
-       relevant.
-   18. **Reporting / TAT / Critical Results / Review clause** — turnaround time,
-       urgent-report path, critical-value threshold (set explicitly or state
-       "not established" with rationale — "NA" is not a policy), and a real
-       periodic-review record.
-
-   Deliver the scorecard as its own section in the audit Doc (see
-   `references/full-lifecycle-scorecard-template.md`).
+2. **Full-lifecycle section walk — ALL 21 sections, every time.** Walk the canonical
+   list in `references/sop-structure-template.md` in order, and record a status per
+   section (GOOD / OK / PARTIAL / GAP / REWRITE) in a scorecard table delivered as its
+   own section of the audit Doc. That file carries the per-section requirements, the
+   verified ISO 15189:2022 clause basis and the key rules — do not restate the list
+   here, because a second copy drifts from the canonical one.
 
 3. **Reference Section Audit** — audit §4.19 (or equivalent) as a standalone
    section: primary method reference, internal SOP references, traceability,
@@ -606,72 +555,23 @@ the primary structure of the audit, not something you do after the recurring
 gaps. Do not say "first pass found X, then I went deeper and found Y" as if the
 "deeper" pass is an add-on — the lifecycle walk IS the audit.
 
-## Full-Lifecycle Section Audit — auditing EVERY section, not just analytical performance
+## Full-Lifecycle Section Audit
 
-A recurring weakness: audits default to 6–7 analytical sections (TAT, calibration,
-precision/MU, accuracy/specificity, reference interval, review clause, critical results)
-and SKIP the sections that carry the most operational risk — Purpose/Scope, Sample Type,
-Collection Timing, Handling/Stability, **Rejection Criteria**, **Test Procedure step-wise**,
-**Limitations**, Safety (reagent-specific hazards), Clinical Interpretation, Reporting
-format. This was corrected during the VDC BIO 147 Galactose audit (2026-08-29), where the
-first pass missed that the SOP's Rejection Criteria copied serum-plasma boilerplate
-("grossly haemolysed") that is irrelevant to dried blood spots, and that "Special timing
-of collection: NA" contradicted the Day 3–5 collection text two lines below.
+**Mandatory: walk ALL 21 sections of `references/sop-structure-template.md` on every audit**
+and record a status per section (GOOD / OK / PARTIAL / GAP / REWRITE) in the scorecard. That
+file is the canonical section list, carrying the verified ISO 15189:2022 clause basis and the
+key rules. Do not restate the list here — a second copy drifts.
 
-The 18-section checklist below is the condensed form of the default audit
-sequence (see the **Deep Audit Mode — the DEFAULT sequence** section above for
-the full procedural flow). Use it as a quick-reference checklist; do not re-read
-it as a separate "deeper" audit that comes after the recurring-gap scan.
-
-**Mandatory:** for every SOP audit, walk ALL of these 18 lifecycle sections and record a
-status (GOOD / OK / PARTIAL / GAP / CONTRADICTION) per section in a scorecard table.
-
-1. **Purpose & Scope** — does it state the test's intent AND its limits (screening-only?
-   not for confirmatory use — match the kit insert's intended-use caveat)?
-2. **Definitions / Abbreviations** — are all abbreviations used in the body defined?
-   (e.g. GALT/GALK/GALE/DBS/NBS if referenced)
-3. **Responsibility / Competency** — who is authorised; any training prerequisite?
-4. **Sample Type** — matrix + container (e.g. Whatman 903 DBS); verify vs kit insert.
-5. **Collection Timing** — window (e.g. Day 3–5 / 48–120 h); flag "NA" fields that
-   contradict a stated window elsewhere in the same SOP.
-6. **Handling / Transport / Stability** — temp, duration; verify vs kit storage clause.
-7. **Rejection Criteria** — MUST be matrix-appropriate. A DBS SOP must NOT list
-   "grossly haemolysed / highly lipemic / highly icteric" (those are serum-plasma criteria;
-   a filter card does not haemolyse). Keep only DBS-relevant rejects (incomplete saturation,
-   insufficient volume, wrong card, transport delay, ID error).
-8. **Test Procedure (step-wise)** — reproduce each step (volumes, incubation, read
-   wavelength/mode) and compare line-by-line vs the kit insert. Flag over-specification
-   (e.g. "405–550 nm, kinetic" when the assay is 550 nm endpoint only) and wording drift
-   ("part of Color Booster" missing the "1" in a 1:10 ratio).
-9. **Calculation** — formula vs kit; units consistent.
-10. **IQC / EQC** — levels, frequency, rules, post-maintenance/repair re-qualification,
-    reference to internal QC SOP (e.g. MSP/18). Check for contradiction with a "Control: NA"
-    field elsewhere.
-11. **Calibration Frequency** — beyond "when kit opened"; traceability.
-12. **Performance** — Precision (%CV) & MU vs kit's validated CV; Accuracy; Specificity
-    (numeric or cross-ref); flag magnitudes ~2× the kit as CAPA-level.
-13. **AMR / LOD / LOQ** — internal consistency (LOD ≤ LOQ ≤ AMR) and vs kit sensitivity.
-14. **Reference Interval** — is it sourced/locally validated, or a fixed number with no
-    basis? Kit inserts often say "each lab must establish its own cut-off" — a fixed range
-    cited without derivation is a finding.
-15. **Limitations / Potential Sources of Variation** — list ALL kit-cited cautions
-    (transfusion, premature, low-birth-weight, sick newborns, <48 h). An SOP that lists
-    only one while the kit lists five is a PARTIAL finding.
-16. **Safety** — generic GLP PLUS reagent-specific hazards (e.g. TCA elution buffer is
-    corrosive H315; sodium azide plumbing warning). Flag if only generic rules present.
-17. **Clinical Interpretation** — mechanism/deficiency text vs kit; watch substrate-name
-    drift (e.g. "galactose-6 phosphate" vs kit's "galactose-1-phosphate").
-18. **Reporting / TAT / Critical Results / Review clause** — turnaround time, urgent-report
-    path, critical-value threshold, and a real periodic-review record (not just a footer).
-
-Deliver the scorecard as its own section in the audit Doc (see
-`references/full-lifecycle-scorecard-template.md`). The BIO 147 comprehensive audit
-(2026-08-29, Google Doc `1vlJmENywiFdaTqYM2CZMCgIbfzdpZNHFVH_0T8Gh3aU`) is the worked
-example of this full-lifecycle approach.
+A recurring weakness this prevents: audits defaulting to 6-7 analytical sections and skipping
+Purpose/Scope, Sample Type, Collection Timing, Handling/Stability, **Rejection Criteria**,
+**Procedure step-wise**, **Limitations**, Safety, Clinical Interpretation and Reporting - the
+sections carrying the most operational risk. During the VDC BIO 147 Galactose audit the first
+pass missed that Rejection Criteria copied serum-plasma boilerplate onto a dried-blood-spot
+SOP, and that "Special timing: NA" contradicted the Day 3-5 text two lines below.
 
 ## Reference Section Audit (SOP §4.19 or equivalent)
 
-After the 18-section lifecycle walk, audit the **References** section as a standalone
+After the 21-section lifecycle walk, audit the **References** section as a standalone
 section in the audit Doc. This was formalized during the BIO 166 v2 audit (2026-08-30).
 
 **Mandatory checklist:**
@@ -753,9 +653,11 @@ The BIO 166 v2 audit rated this VERIFIED — all 3 sources agreed on troponin T 
 
 ## References (support files)
 
-- `references/common-sop-gaps.md` — reusable checklist of dimensions to scan every SOP
-  against (TAT, calibration frequency, method validation, periodic review, risk-SOP
-  citation). Start here before drafting findings.
+- `references/common-sop-gaps.md` — 15-dimension pre-flight checklist for every SOP
+  (TAT, calibration frequency, method verification/validation, periodic review, risk-SOP
+  citation, critical results, stability, traceability, interference, document control,
+  matrix-appropriate rejection, personnel, safety, references). Clause numbers are verified
+  against `iso-15189-certification`. Start here before drafting findings.
 - `references/au-series-validation-findings.md` — condensed result bank from the
   2026-07-15 database-wide audit: the "is validation data anywhere?" answer, the AU-series
   45-SOP deficiency profile, and the reusable scan pipeline. Read BEFORE a scope-wide or
@@ -784,3 +686,7 @@ The BIO 166 v2 audit rated this VERIFIED — all 3 sources agreed on troponin T 
   scan, pre/post-analytical checklists, QC detail, calibration detail, safety, document
   control, numerical consistency, operational workflow gaps, and orphan references.
   Produced 9 additional findings when applied to VDC BIO 01.
+- `references/sop-structure-template.md` — **the canonical 21-section SOP framework.**
+  Single source of truth for the full-lifecycle walk (replaces the former 18-section
+  scorecard template). Carries per-section requirements, verified ISO 15189:2022 clause
+  basis, the six key rules, and the GOOD/OK/PARTIAL/GAP/REWRITE assessment scale.

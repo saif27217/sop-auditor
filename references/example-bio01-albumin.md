@@ -41,7 +41,7 @@ Full audit with Exact Suggested Changes. Use as a template for other SOP audits.
 
 **Evidence:** 0 of 59 chunks define a turnaround time. All 15 "tat" hits were the footer "Reviewed & Issued by" artifact.
 
-**Problem:** ISO 15189:2022 §7.3.4 / NABL-112 require a stated TAT for each examination procedure. None exists.
+**Problem:** ISO 15189:2022 §7.2.6.1 f) + §7.4.1.7 (TAT definition §3.30) / NABL-112 require a stated TAT for each examination procedure. None exists.
 
 **Exact Suggested Change:**
 > _Insert a new sub-section after 4.9:_
@@ -54,7 +54,7 @@ Full audit with Exact Suggested Changes. Use as a template for other SOP audits.
 >
 > All TATs are calculated from the time of sample receipt in the laboratory to the time of verified result release. Record TAT exceptions in the monthly TAT log per VDC/MSP/XX. TAT performance is reviewed quarterly by the Section Head.
 
-**Benefit:** Direct compliance with ISO 15189:2022 §7.3.4; measurable SLA for clinicians.
+**Benefit:** Direct compliance with ISO 15189:2022 §7.2.6.1 f) + §7.4.1.7; measurable SLA for clinicians.
 **Confidence:** High (confirmed absent in full 59-chunk dump).
 
 ---
@@ -85,7 +85,7 @@ Full audit with Exact Suggested Changes. Use as a template for other SOP audits.
 
 **Evidence:** Section 4.13 (cid 47): "Accuracy: NA", "Specificity: NA". No citation of a method-validation SOP or CLSI EP05/EP06.
 
-**Problem:** ISO 15189:2022 §7.3.1 requires verification of performance claims. "NA" for accuracy without evidence is not acceptable.
+**Problem:** ISO 15189:2022 §7.3.2 requires verification of performance claims. "NA" for accuracy without evidence is not acceptable.
 
 **Exact Suggested Change:**
 > _Replace the "Accuracy: NA" and "Specificity: NA" lines in §4.13 with:_
@@ -106,7 +106,7 @@ Full audit with Exact Suggested Changes. Use as a template for other SOP audits.
 
 **Evidence:** No review validity period or expiry clause found in 59 chunks.
 
-**Problem:** ISO 15189:2022 §7.2.2 requires documented review/revision cycle for examination procedures.
+**Problem:** ISO 15189:2022 §8.3.2 c) requires a documented review/revision cycle for examination procedures.
 
 **Exact Suggested Change:**
 > _Insert at the end of §6.0 (Appendices/Forms/WI's/Logs) or add as §7.0:_

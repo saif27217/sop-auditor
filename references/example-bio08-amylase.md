@@ -30,14 +30,14 @@ Full audit delivered as Google Doc `17Wtbf5z4P1fMHF3fDXwt3vox3AQ0PTUx1NO5Zx7v-10
 ## Findings (9 total)
 
 ### High Severity
-1. **TAT missing** — 0 "turnaround" hits in 61 chunks. ISO 15189:2022 §7.3.4 requires defined TAT for routine and STAT samples. Amylase is often STAT in acute abdominal pain.
+1. **TAT missing** — 0 "turnaround" hits in 61 chunks. ISO 15189:2022 §7.2.6.1 f) + §7.4.1.7 require defined TAT for routine and STAT samples. Amylase is often STAT in acute abdominal pain.
    - **Exact Suggested Change:** Add section 4.xx: "Routine amylase results shall be reported within 4 hours of sample receipt. STAT (urgent) amylase results shall be reported within 1 hour of sample receipt."
 
 2. **Periodic review clause absent** — grep for "review every", "shall be reviewed", "next review" returns 0 hits. Footer artifact "Reviewed & Issued by" is not a periodic-review clause (Pitfall #8).
    - **Exact Suggested Change:** Add to §5.0: "This SOP shall be reviewed every 2 years or upon significant method/equipment change, whichever comes first. Review responsibility: HOD Biochemistry."
 
 ### Medium Severity
-3. **Accuracy marked "NA"** — ISO 15189:2022 §7.3.1 requires documented accuracy or explicit "not established" with justification.
+3. **Accuracy marked "NA"** — ISO 15189:2022 §7.3.2 requires documented accuracy or explicit "not established" with justification.
    - **Exact Suggested Change:** "Accuracy: Not established by laboratory — manufacturer validation per IFU BLOSR6x06.01. Method comparison data available upon request."
 
 4. **Specificity marked "NA"** — Interference thresholds exist in §4.10 but specificity field is NA.
@@ -85,9 +85,9 @@ Full audit delivered as Google Doc `17Wtbf5z4P1fMHF3fDXwt3vox3AQ0PTUx1NO5Zx7v-10
 3. Clarify Critical Results vs. CDVs (§4.14) — eliminates confusion
 
 ### 30 Days
-4. State reference interval (§4.13) — ISO 15189 §7.3.6
+4. State reference interval (§4.13) — ISO 15189 §7.3.5
 5. Add Accuracy/Specificity statements (§4.13) — replace "NA" with explicit policy
-6. Add risk-SOP citation (§5.0) — ISO 15189 §10.1
+6. Add risk-SOP citation (§5.0) — ISO 15189 §5.6 / §8.5
 
 ### Long Term
 7. Verify LOD claim (1 U/L vs. IFU 2 U/L) — document source
