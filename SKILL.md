@@ -1,7 +1,7 @@
 ---
 name: sop-auditor
 description: "Audit SOPs and controlled documents retrieved from a Qdrant RAG collection for discrepancies, contradictions, missing steps, and compliance gaps. Use when asked to audit, review, or reconcile SOPs / work instructions / procedures against standards (ISO 15189, NABL, ISO 13485, CLIA, etc.). Covers the full workflow: broad retrieval (with a full payload dump to defeat semantic top-k blindness), discrepancy analysis, and delivery as a Google Doc via Composio MCP."
-version: 1.0.0
+version: 1.1.1
 author: Sak / Lazer
 license: MIT
 platforms: [linux]
@@ -40,12 +40,15 @@ banding values.
 - "Reconcile the master SOP with its work instructions"
 - "Review our SOPs against ISO 15189 / NABL-112-A / ISO 13485"
 - Any request to find discrepancies among controlled documents in the RAG store
+- "Audit this SOP at this URL / file path" — file/Google-Doc path (§F1)
 
 ## Architecture of the Workflow
 
 ```
 1. Identify target docs        → from the user request, find doc_id substrings
-2. FULL DUMP (not top-k)       → scripts/full_dump.py — scroll all chunks per doc
+                                       OR download file/Google Doc (§F1)
+2. FULL DUMP (Qdrant)          → scripts/full_dump.py — scroll all chunks per doc
+   OR extract (file/Google-Doc) → read_file / download + extract text
 3. Scan for key terms          → RPN, severity, occurrence, bands, acceptance, etc.
 4. Extract exact scales/tables → pull verbatim text for scoring + banding
 5. Cross-document comparison   → table of conflicts
@@ -55,6 +58,76 @@ banding values.
 ```
 
 ## Step 1 — Identify target documents
+
+### Two input paths: Qdrant-retrieved vs file/Google-Doc
+
+This skill covers **two distinct input sources**. Route by what the user provides:
+
+| If the user gives you… | Route |
+|---|---|
+| A Qdrant `doc_id` substring, a collection name, or a SOP stored in the RAG store | **Qdrant path** — go to §Q1 below |
+| A Google Doc URL, a Drive file link, a local file path, or any URL pointing to the SOP | **File/Google-Doc path** — go to §F1 below |
+
+Do not mix the two. A SOP that lives as a Google Doc does not need Qdrant enumeration — it needs download + extraction.
+
+### §F1 — File/Google-Doc SOPs (non-Qdrant path)
+
+**When to use:** the user gives you a Google Doc link, a Drive file link, or a local file path — the SOP is NOT in the Qdrant RAG store.
+
+**Workflow:**
+
+1. **Google Doc or Drive link → download the file.** Use the Composio MCP
+   `COMPOSIO_MULTI_EXECUTE_TOOL` with `GOOGLEDRIVE_DOWNLOAD_FILE` (pass the
+   `fileId` from the Drive URL — the part after `/d/` and before `/view`). The
+   response returns an S3 `s3url` you can `curl` to get the file bytes. If the
+   doc is native Google format and `GOOGLEDRIVE_DOWNLOAD_FILE` fails with
+   "not supported for this document" / "must not be an Office file", use the
+   file-type-appropriate composio tool instead:
+   - Google Doc → `GOOGLEDOCS_GET_DOCUMENT_PLAINTEXT` (pass `document_id`)
+   - Google Sheet → `GOOGLESHEETS_*` tools after searching for the sheet slug
+   If those also fail, **do not loop** — write the audit to a local file and
+   report the blocker honestly with the download URL.
+
+2. **Local file → extract text.** The SOP may arrive as a legacy `.doc` (Word 97
+   binary), modern `.docx`, or another office format. The Hermes `read_file` tool
+   auto-extracts Office formats: legacy `.doc`, `.docx`, `.xlsx`, `.pptx`, plus
+   PDF, EPUB, RTF. **This is often the fastest path** — `read_file` returns the
+   full text in one call, no package install needed. If `read_file` returns
+   "Cannot read images/binary", the file is genuinely binary and you need
+   `antiword` (for `.doc`) or `python3 -c "import docx; ..."` (for `.docx`).
+
+3. **Scan the extracted text** against the recurring-gap checklist and
+   deep-audit checklist exactly as the Qdrant path does (Step 3 onward). The
+   input source differs; the audit methodology is identical.
+
+4. **Deliver** the audit report as a Google Doc via `GOOGLEDOCS_CREATE_DOCUMENT_MARKDOWN`
+   + staged `GOOGLEDOCS_UPDATE_DOCUMENT_SECTION_MARKDOWN` calls (Step 7). If delivery
+   fails, write the full audit to `/home/sak/sop_audit_<name>.md` and report the path.
+
+**Pitfall — platform mismatch: the kit insert is the source of truth.** When the SOP's
+analyzer differs from the kit-insert skill's analyzer, the **kit insert wins** — the SOP
+is the document under audit and the artifact that gets corrected. Never offer to rebuild
+the kit-insert skill to match a divergent SOP, and never soften findings because of the
+mismatch. Check for the mismatch up front (skill SKILL.md states kit/analyzer/insert;
+SOP §Equipment states its analyzer), then audit every kit-specific value (interference
+thresholds, cross-reactivity, precision/CV, stability, AMR, reference intervals) **against
+the kit insert** and report each divergent SOP value as a finding — High when the SOP
+states a wrong number, Medium when it omits a kit value. Withhold kit-specific findings
+only when the correct insert is genuinely unavailable, and then state exactly which insert
+is needed. The verdict is a **SOP rewrite / gap analysis**, not amendments.
+
+**Pitfall — legacy `.doc` format.** A `.doc` reported by `file` as "Composite Document
+File V2 Document, Little Endian" is the Word 97 binary format (not OOXML `.docx`).
+It fails `python-docx` (`PackageNotFoundError`) and `pdftotext`. On this host,
+routinely available bypasses in priority order:
+1. **Hermes `read_file`** — auto-extracts legacy Office formats. First attempt. One
+   call, no install. Returns the full text.
+2. **`antiword`** (`sudo apt install antiword`) — command-line `.doc`→text.
+3. **`catdoc`** (`sudo apt install catdoc`).  
+Do NOT try `python-docx` on a `.doc` — it is an explicit failure mode. Do NOT
+conclude "no text extractor available" and stop; `read_file` handles this case.
+
+### §Q1 — Qdrant-retrieved SOPs (original workflow)
 
 If you ALREADY know the `doc_id` substring for the target SOP (e.g. from a prior
 audit or from the user's request such as "VDC BIO 02 ACE"), **skip straight to
@@ -157,7 +230,7 @@ When auditing a **family of SOPs** sequentially (user says "continue" → next S
 
 This pattern was refined during the VDC BIO AU-series (BIO 02–10, 2026-07-16). The result bank lives in `references/au-series-gap-matrix.md`.
 
-## Step 6 — Findings with severity & category
+## Step 6 — Findings: every finding MUST carry copy-paste text (gate, not column)
 
 For each issue: Severity (Critical/High/Medium/Low) × Category
 (Compliance/Documentation/Workflow/Safety/Quality/Operational/Training/
@@ -167,17 +240,30 @@ Traceability/Record Keeping/Regulatory/Efficiency). Include:
 - Problem
 - Why it matters
 - Recommended improvement
-- **Exact Suggested Change** — draft SOP text that could be inserted or
-  modified directly (e.g. *"Add a new section 4.xx: 'TAT: Routine serum
-  albumin results shall be reported within X hours of sample receipt.
-  Urgent (STAT) albumin shall be reported within Y hours.'"*)
-- Expected benefit
-- Confidence (High/Medium/Low) + the chunk it came from
 
-The **Exact Suggested Change** column is not optional. A finding that only
-says "add TAT" is half-finished. The value is in providing language the SOP
-owner can copy-paste with minimal edits. Default to placeholder variables
-(e.g. X hours, Y days) where the exact number needs local calibration.
+**Exact Suggested Change — REQUIRED, not optional, not a "nice to have."**
+
+Every finding MUST include draft SOP text that could be inserted or modified
+directly (e.g. *"Add a new section 4.xx: 'TAT: Routine serum albumin results
+shall be reported within X hours of sample receipt. Urgent (STAT) albumin shall
+be reported within Y hours.'"*). **No finding is complete without it.** A finding
+that only says "add TAT" or "fix precision" is a HALF-FINDING and must not be
+delivered.
+
+The value is in providing language the SOP owner can copy-paste with minimal
+edits. Default to placeholder variables (e.g. X hours, Y days, [VALUE]) where
+the exact number needs local calibration, but the STRUCTURE and wording of the
+change must be concrete.
+
+**Pre-push gate:** before delivering the Google Doc, verify every finding has
+an Exact Suggested Change. If any finding is missing it, either:
+(a) write the change text now, or
+(b) drop the finding — a gap note without a suggested change is weaker
+    than no finding at all.
+
+The expected benefit and a Confidence rating (High/Medium/Low) + the chunk
+it came from are also included, but they are secondary: the change text is the
+primary deliverable per finding.
 
 ## Step 7 — Deliver as Google Doc (Composio MCP)
 
@@ -348,13 +434,11 @@ for finding in findings:
    substring, and then use a tight `MatchText`/`category` filter with a raised
    `timeout=`, never `scroll_filter=None` over the full collection.
 
-review every N years'.
+11. **Always paste the `display_url` in your final reply.** Building + verifying the Doc is not the end of the turn. A run that created and verified the doc but omitted the link forced the user to ask "Share the link". Both `CREATE_DOCUMENT_MARKDOWN` and `GET_DOCUMENT_PLAINTEXT` return `display_url`/`documentId` — surface it explicitly in your closing message.
 
 12. **`COMPOSIO_MULTI_EXECUTE_TOOL` shape: `tool_slug` goes INSIDE each `tools[]` entry.** A call shaped as `{ tool_slug: "...", tools: [{ arguments: {...} }] }` (slug as a *sibling* of `tools`) is rejected with `Validation error: Expected object, received string at "tools[0]"`. The correct shape is `tools: [{ arguments: {...}, tool_slug: "GOOGLEDOCS_..." }]`. Keep `tool_slug` adjacent to its `arguments` inside the array entry when building the call.
 
-13. **Always paste the `display_url` in your final reply.** Building + verifying the Doc is not the end of the turn. A run that created and verified the doc but omitted the link forced the user to ask "Share the link". Both `CREATE_DOCUMENT_MARKDOWN` and `GET_DOCUMENT_PLAINTEXT` return `display_url`/`documentId` — surface it explicitly in your closing message.
-
-14. **Whole-collection enumeration IS possible — just run it in the background.** Pitfall #10's
+13. **Whole-collection enumeration IS possible — just run it in the background.** Pitfall #10's
    "unfiltered scroll times out" applies to a *synchronous* `scroll()` inside a 60s
    foreground/terminal cap. A database-wide or family-wide audit needs every chunk, and
    you CAN get it: `python scripts/dump_all_collection.py --collection vdc --out all.jsonl`
@@ -365,13 +449,40 @@ review every N years'.
    the real scope-wide answer. After it completes, `scripts/scan_validation_deficiencies.py`
    classifies every `doc_id` against the gap checklist (see `references/au-series-validation-findings.md`).
 
-15. **Doc_id substrings may have non-standard spacing, casing, or naming.** A `MatchText`
+14. **Doc_id substrings may have non-standard spacing, casing, or naming.** A `MatchText`
    search for `"BIO 07"` (single space) returned zero hits because the actual doc_id was
    `"VDC BIO  07 - AMMONIA BY AU 5800"` (double space, all-caps, "BY AU 5800" instead of
    "by AU Series"). Similarly, `"BIO 10"` matched BIO 101, 107, 103.1 (numeral prefix
    collision) before the intended AU Series AST doc. **Fix:** when a direct substring
    search fails, try multiple patterns: the analyte name alone, the full instrument suffix,
    or a broader substring. Scope via `category` or `department` payload fields first.
+
+**Pitfall — instrument-name mismatch in the SOP itself.** A SOP may name the analyzer
+incorrectly throughout (e.g. "Immulite 2000" when the actual instrument is
+"Siemens Optilite"). This is a **documentation error in the SOP**, distinct from
+the kit-insert-platform mismatch below. Flag it as a High or Medium finding
+(severity depends on how many sections are affected and whether reagent codes /
+kit insert references are also wrong). Do not silently "correct" the instrument
+name in your audit without noting where it appears and that the correction needs
+verification against the actual instrument in the lab.
+
+**Pitfall — kit-insert platform mismatch for SOP audits: kit insert governs.** When the
+SOP names an analyzer different from the kit-insert skill's (e.g. SOP says "Immulite 2000"
+but the skill is for Roche cobas e), the **kit insert is the source of truth** — you are
+auditing the SOP, so the SOP is what gets corrected. Do NOT withhold kit-specific findings
+and do NOT offer to rebuild the kit-insert skill to match the SOP. Instead:
+1. Read the skill's SKILL.md for kit/analyzer/insert; read the SOP's §Equipment for its
+   analyzer. Record both in the audit header.
+2. Audit every kit-specific value (interference thresholds, cross-reactivity, precision/CV,
+   stability, AMR, reference intervals) against the **kit insert**.
+3. Report each SOP value that diverges — **High** if the SOP states a wrong number,
+   **Medium** if it omits a value the insert provides, **Low** if wording differs.
+4. Verdict framing: a **rewrite / gap analysis of the SOP** for the kit-insert platform.
+   Never "amendments to the retired platform," never "rebuild the skill."
+
+Withholding kit-specific findings is correct only when the correct insert is genuinely
+unavailable — then name the exact insert needed (manufacturer, catalog, analyzer) so the
+gap can be closed.
 
 ## Pre-flight: the recurring gap checklist
 
@@ -380,33 +491,111 @@ Before writing findings, scan against `references/common-sop-gaps.md` — the co
 citation). These recur across the VDC BIO AU-series and are usually the real findings,
 not contradictions. A worked example lives in `references/example-bio01-albumin.md`.
 
-## Deep Audit Mode — going beyond the recurring gaps
+## Deep Audit Mode — the DEFAULT sequence (not an add-on)
 
-After the standard recurring-gap scan returns its findings, execute the **deep audit
-checklist** (`references/deep-audit-checklist.md`) to uncover structural, operational,
-quality, and workflow issues that the standard scan misses.
+**The default audit sequence is the full-lifecycle walk, always.** The recurring-gap
+scan (Step: Pre-flight) is NOT the primary audit and must not be the only thing
+delivered. The first pass in this skill's workflow MUST be:
 
-The deep audit covers 12 dimensions:
-1. **Section Map** — are all ISO 15189-required sections present?
-2. **Internal Cross-Reference Validation** — does the SOP link its own sections?
-3. **Vague Language Scan** — "as required", "appropriate", "etc." without criteria
-4. **Pre-Analytical Checklist** — fasting, tube type, centrifugation, stability
-5. **Post-Analytical Checklist** — auto-commenting, delta check, dilution protocol
-6. **QC Detail Checklist** — LJ charts, Westgard rules, OOS procedure
-7. **Calibration Detail Checklist** — beyond frequency (traceability, acceptance criteria)
-8. **Safety Checklist** — BSL, PPE, spill, waste disposal
-9. **Document Control Checklist** — amendment log, version, review clause
-10. **Numerical Consistency Checks** — LOQ≥LOD? AMR logical? Units consistent?
-11. **Operational Workflow Gaps** — derived calculations (ratios, gradients, clearances)
-12. **Second-Pass Deep Items** — duplicates, contradictions, empty fields, orphan refs
+1. **Pre-flight recurring-gap scan** (references/common-sop-gaps.md) — quick scan
+   for the most common omissions (TAT, calibration frequency, method validation,
+   periodic review, risk-SOP citation). This takes ~5 minutes and gives you a
+   preliminary list of obvious gaps, but it is **not the audit output** —
+   it is a HEADSTART only.
 
-Each dimension has a structured checklist with severity assignments per missing item.
-The VDC BIO 01 deep audit (2026-07-16) using this checklist produced **9 additional
-findings** beyond the standard 6 recurring gaps, including: zero cross-references, QC
-detail gaps, empty amendment log, and missing operational SAAG workflow.
+2. **Full-lifecycle section walk — ALL 18 sections, every time.** Walk every
+   section in this order and record a status per section (GOOD / OK / PARTIAL /
+   GAP / CONTRADICTION) in a scorecard:
 
-Run the deep audit after the standard scan when the user asks to "go deeper" or
-when the standard findings cover only the obvious gaps.
+   1. **Purpose & Scope** — does it state the test's intent AND its limits
+      (screening-only? not for confirmatory use)? Does the purpose statement
+      match the specimen section (serum vs serum/plasma)?
+   2. **Definitions / Abbreviations** — are ALL abbreviations used in the body
+      defined? Include ones like LCLL/LCLH, PSC, SC, lyophilized, aliquot,
+      on-board, MTC.
+   3. **Responsibility / Competency** — who is authorised; any training
+      prerequisite? Are critical-path roles assigned (who calibrates, who
+      reports criticals, who is EQA coordinator, who investigates QC failures,
+      who handles sample rejection)?
+   4. **Sample Type** — matrix + container; verify vs kit insert.
+   5. **Collection Timing** — window (e.g. fasting required? special timing?);
+      flag "NA" fields that contradict stated windows elsewhere.
+   6. **Handling / Transport / Stability** — temp, duration, freeze-thaw;
+      verify vs kit storage clause.
+   7. **Rejection Criteria** — MUST be matrix-appropriate. State quantitative
+      thresholds from the kit insert (hemoglobin mg/dL, triglycerides mg/dL,
+      bilirubin mg/L) instead of qualitative ("grossly haemolysed").
+      Separate administrative rejections (billing) from specimen rejections.
+   8. **Test Procedure (step-wise)** — reproduce each step (volumes, incubation,
+      read mode) and compare line-by-line vs the kit insert.
+   9. **Calculation** — formula vs kit; units consistent.
+   10. **IQC / EQC** — levels, frequency, Westgard rules, post-maintenance
+       re-qualification, reference to internal QC SOP (e.g. MSP/18).
+   11. **Calibration Frequency** — beyond "when kit opened"; traceability;
+       define "significant shift" concretely.
+   12. **Performance** — Precision (%CV) & MU vs kit's validated CV; Accuracy;
+       Specificity (numeric or cross-ref); flag magnitudes ~2× the kit as
+       CAPA-level.
+   13. **AMR / LOD / LOQ** — internal consistency (LOD ≤ LOQ ≤ AMR) and vs kit
+       sensitivity.
+   14. **Reference Interval** — sourced/locally validated, or a fixed number with
+       no basis?
+   15. **Limitations / Potential Sources of Variation** — list ALL kit-cited
+       cautions. An SOP that lists only one while the kit lists five is PARTIAL.
+       Move heterophilic/HAMA interference here from wherever it currently sits
+       (it belongs in Interferences, not in a generic "sources of variation"
+       section, unless the SOP's §4.10 specifically addresses interferences
+       separately — reconcile accordingly).
+   16. **Safety** — generic GLP PLUS reagent-specific hazards (e.g. eye
+       protection, first aid, SDS location). Flag if only generic rules present.
+   17. **Clinical Interpretation** — lead with the primary indication (MTC for
+       calcitonin, AMI for troponin, etc.). Do not bury the primary use under
+       secondary differential diagnoses. Include MEN2 surveillance, post-treatment
+       monitoring, physiological causes, and obstetric/benign conditions where
+       relevant.
+   18. **Reporting / TAT / Critical Results / Review clause** — turnaround time,
+       urgent-report path, critical-value threshold (set explicitly or state
+       "not established" with rationale — "NA" is not a policy), and a real
+       periodic-review record.
+
+   Deliver the scorecard as its own section in the audit Doc (see
+   `references/full-lifecycle-scorecard-template.md`).
+
+3. **Reference Section Audit** — audit §4.19 (or equivalent) as a standalone
+   section: primary method reference, internal SOP references, traceability,
+   appendices/forms, completeness (no orphan citations).
+
+4. **Grammar / Spelling / Clinical-Accuracy Scan** — spelling consistency,
+   clinical terminology matching kit insert, clinical accuracy vs standard
+   references, interference threshold numeric match.
+
+5. **Findings with Exact Suggested Change (Step 6)** — write findings from the
+   full walk, each with copy-paste change text. Do NOT deliver findings-only
+   without the lifecycle walk that produced them.
+
+The recurring-gap scan (step 1) overlaps with some lifecycle sections — that is
+fine. It is a quick pre-check, not a substitute. The user-facing audit doc must
+contain the full scorecard, not just a list of recurring-gap findings.
+
+**Why this matters:** auditing only the analytical sections (TAT, calibration,
+precision/MU, reference interval, review clause, critical results) skips the
+sections that carry the most operational risk — Purpose/Scope, Sample Type,
+Collection Timing, Rejection Criteria, Test Procedure step-wise, Limitations,
+Safety, Clinical Interpretation. This was corrected during the VDC BIO 147
+Galactose audit (2026-08-29), where the first pass missed that the SOP's
+Rejection Criteria copied serum-plasma boilerplate ("grossly haemolysed") that
+is irrelevant to dried blood spots, and that "Special timing of collection: NA"
+contradicted the Day 3–5 collection text two lines below.
+
+The VDC BIO 147 comprehensive audit (2026-08-29, Google Doc
+`1vlJmENywiFdaTqYM2CZMCgIbfzdpZNHFVH_0T8Gh3aU`) is the worked example of
+this full-lifecycle-first approach.
+
+**The deep-audit-checklist.md (references/)** is a CHECKLIST — use it to make
+sure each lifecycle section is fully assessed, but the lifecycle walk itself is
+the primary structure of the audit, not something you do after the recurring
+gaps. Do not say "first pass found X, then I went deeper and found Y" as if the
+"deeper" pass is an add-on — the lifecycle walk IS the audit.
 
 ## Full-Lifecycle Section Audit — auditing EVERY section, not just analytical performance
 
@@ -420,8 +609,13 @@ first pass missed that the SOP's Rejection Criteria copied serum-plasma boilerpl
 ("grossly haemolysed") that is irrelevant to dried blood spots, and that "Special timing
 of collection: NA" contradicted the Day 3–5 collection text two lines below.
 
+The 18-section checklist below is the condensed form of the default audit
+sequence (see the **Deep Audit Mode — the DEFAULT sequence** section above for
+the full procedural flow). Use it as a quick-reference checklist; do not re-read
+it as a separate "deeper" audit that comes after the recurring-gap scan.
+
 **Mandatory:** for every SOP audit, walk ALL of these 18 lifecycle sections and record a
-status (GOOD / OK / PARTIAL / GAP / CONTRADICTION) per section in a scorecard table:
+status (GOOD / OK / PARTIAL / GAP / CONTRADICTION) per section in a scorecard table.
 
 1. **Purpose & Scope** — does it state the test's intent AND its limits (screening-only?
    not for confirmatory use — match the kit insert's intended-use caveat)?
@@ -558,7 +752,7 @@ The BIO 166 v2 audit rated this VERIFIED — all 3 sources agreed on troponin T 
   45-SOP deficiency profile, and the reusable scan pipeline. Read BEFORE a scope-wide or
   new-BIO audit.
 - `references/example-bio01-albumin.md` — full worked audit (VDC BIO 01, BCG method)
-  with verbatim evidence and findin'gs; use as a template.
+  with verbatim evidence and findings; use as a template.
 - `references/example-bio02-ace.md` — full worked audit (VDC BIO 02, ACE / FAPGG method),
   including the LOQ=0–150 U/L transcription-error finding; use as a second template.
 - `references/example-bio03-acp.md` — full worked audit (VDC BIO 03, ACP / Alpha Naphthyl
@@ -581,8 +775,3 @@ The BIO 166 v2 audit rated this VERIFIED — all 3 sources agreed on troponin T 
   scan, pre/post-analytical checklists, QC detail, calibration detail, safety, document
   control, numerical consistency, operational workflow gaps, and orphan references.
   Produced 9 additional findings when applied to VDC BIO 01.
-- `references/sop-structure-template.md` — 21-section mandatory SOP framework for
-  **writing new SOPs** or auditing existing ones against ISO 15189:2022 §7.3.6 and
-  NABL-112. Includes assessment scale (GOOD/OK/PARTIAL/GAP) and worked example
-  (VDC BIO 166 v2). Use BEFORE drafting findings to establish structural baseline.
-
