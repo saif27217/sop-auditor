@@ -1,7 +1,7 @@
 ---
 name: sop-auditor
 description: "Audit SOPs and controlled documents retrieved from a Qdrant RAG collection for discrepancies, contradictions, missing steps, and compliance gaps. Use when asked to audit, review, or reconcile SOPs / work instructions / procedures against standards (ISO 15189, NABL, ISO 13485, CLIA, etc.). Covers the full workflow: broad retrieval (with a full payload dump to defeat semantic top-k blindness), discrepancy analysis, and delivery as a Google Doc via Composio MCP."
-version: 1.2.1
+version: 1.2.2
 author: Sak / Lazer
 license: MIT
 platforms: [linux]
@@ -125,6 +125,22 @@ Getting this wrong silently injects a different product's numbers into a live SO
 Withhold a kit-specific finding only when the governing insert is genuinely unavailable, and then
 name the exact insert needed. Never offer to rebuild the kit-insert skill, and never soften
 findings because of the mismatch.
+
+**Rule — decide the deliverable from the NATURE of the difference, not from the vendor alone.**
+Classify the difference first, then act. Do not ask the user to choose a mode.
+
+| Difference observed | Source of truth | Deliverable |
+|---|---|---|
+| Instrument **name** only — same vendor, same method | The SOP's own insert; the name is a documentation error | **Rewrite** incl. the corrected instrument name |
+| Same analyzer, **assay superseded** (old catalog → new) | The new insert | **Rewrite** — kit governs |
+| Different vendor, **same principle/method** (two turbidimetric kits) | The SOP's own insert governs; skill rows are cross-reference only | **Rewrite** for the SOP's platform; side-by-side as comparison |
+| Different vendor **AND** different principle/method (nephelometry vs turbidimetry; different antibody / standard / traceability) | The SOP's own vendor insert, which must be supplied | **Rewrite every platform-independent section now**; mark only the unverifiable numerics `[NEEDS <DOC>]` |
+
+**Never end an audit with only questions.** Deliver the rewrite for everything that does not depend
+on a missing document, list the exact values still open, and name the document that closes them.
+A findings-only report that trails off asking for inputs is a partial deliverable — the only
+acceptable reason to leave a value open is that its governing document genuinely was not supplied,
+and that must be stated with the marker, not as a question in prose.
 
 **Rule — not every SOP field has a kit counterpart.** Inserts commonly omit biological
 reference intervals, clinical decision values, calibration frequency, TAT and critical-value
@@ -270,9 +286,15 @@ that only says "add TAT" or "fix precision" is a HALF-FINDING and must not be
 delivered.
 
 The value is in providing language the SOP owner can copy-paste with minimal
-edits. Default to placeholder variables (e.g. X hours, Y days, [VALUE]) where
-the exact number needs local calibration, but the STRUCTURE and wording of the
-change must be concrete.
+edits. **Never default to placeholders.** Write the real number whenever the SOP, the governing
+insert, or an internal SOP supplies it. Use a marker only when a value is genuinely unavailable,
+and name what closes it:
+
+- `[LAB-DEFINED]` — the lab must set it (TAT, critical limits, review interval, local control mean/ranges)
+- `[NEEDS <DOC>]` — a named document supplies it (e.g. `[NEEDS Siemens BN ProSpec Apo B BRR]`)
+
+Bare `[X]`-style placeholders are a last resort: a suggested change that is mostly `[X]` is a
+HALF-FINDING. Concrete structure AND concrete numbers wherever the evidence allows.
 
 **Pre-push gate:** before delivering the Google Doc, verify every finding has
 an Exact Suggested Change. If any finding is missing it, either:
@@ -504,9 +526,16 @@ Withholding kit-specific findings is correct only when the correct insert is gen
 unavailable — then name the exact insert needed (manufacturer, catalog, analyzer) so the
 gap can be closed.
 
-## Pre-flight: the recurring gap checklist
+## Pre-flight: input gate, then the recurring gap checklist
 
-Before writing findings, scan against `references/common-sop-gaps.md` — the common
+**Input gate — state what the audit needs, warn once, then proceed.** Before the first finding,
+state the two inputs that determine correctness: **(1)** which analyzer runs this assay in routine
+service today, and **(2)** the vendor insert / BRR version that governs it. If the user does not
+supply them, warn once and continue anyway — deliver every platform-independent finding and mark
+insert-dependent values `[NEEDS <DOC>]`. **Never block the audit on an unanswered input**, and
+never end the report with a bare question (see the deliverable rule above).
+
+Then, before writing findings, scan against `references/common-sop-gaps.md` — the common
 *omissions* (TAT, calibration frequency, method validation, periodic review, risk-SOP
 citation). These recur across the VDC BIO AU-series and are usually the real findings,
 not contradictions. A worked example lives in `references/example-bio01-albumin.md`.
